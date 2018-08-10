@@ -91,4 +91,10 @@ class ZipHelper {
 		}
 		return $encoding.GetString($Array, $skipBytes, $Array.Length - $skipBytes)
 	}
+	static [System.IO.MemoryStream] ReadDeflateStream ([DeflateStream]$stream) {
+		$memStream = [System.IO.MemoryStream]::new()
+		$stream.CopyTo($memStream)
+		$stream.Close()
+		return $memStream
+	}
 }
