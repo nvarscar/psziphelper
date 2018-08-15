@@ -30,11 +30,11 @@ class ZipHelper {
 	static [psobject[]] GetArchiveItems ([string]$fileName) {
 		$zip = [Zipfile]::OpenRead($FileName)
 		try {
-			$entries = $zip.Entries | Select-Object *
+            $entries = $zip.Entries | Select-Object *
 		}
 		catch { throw $_ }
-		finally { $zip.Dispose() }
-		return $entries
+        finally { $zip.Dispose() }
+		return $entries | Add-Member -MemberType ScriptProperty -Name Folder -Value { Split-Path $this.FullName} -PassThru
 	}
 	# Returns a specific entry from the archive file
 	static [psobject[]] GetArchiveItem ([string]$fileName, [string[]]$itemName) {
@@ -55,6 +55,28 @@ class ZipHelper {
 		catch { throw $_ }
 		finally { $zip.Dispose() }
 		return $output
+	}
+    static [void] SaveArchiveItem ([string]$fileName, [string]$itemName, [string]$saveTo) {
+        $zip = [Zipfile]::OpenRead($fileName)
+        try {
+            $entry = $zip.Entries | Where-Object { $_.FullName -in $itemName }
+            #Open file stream to write
+            $writeStream = [System.IO.File]::Create($saveTo)
+            #Copy deflate stream to the write stream
+			$zipStream = $entry.Open()
+            try {
+                $zipStream.CopyTo($writeStream)
+            }
+            catch { throw $_ }
+            finally { 
+                $zipStream.Close()
+                $zipStream.Dispose()
+				$writeStream.Close()
+                $writeStream.Dispose()
+			}
+        }
+        catch { throw $_ }
+        finally { $zip.Dispose() }
 	}
 	static [string] DecodeBinaryText ([byte[]]$Array) {
 		$skipBytes = 0
