@@ -17,6 +17,15 @@ Function Expand-ArchiveItem {
 	
 	.PARAMETER PassThru
 	If specified, returns the unpacked item object
+
+	.PARAMETER Force
+	Overwrites existing file(s)
+
+	.PARAMETER Relative
+	Extract with relative paths based on the specified item path
+
+	.PARAMETER IgnoreFolders
+	Extract all files to the same folder regardless of the paths inside the archive
 	
 	.EXAMPLE
 	Expand-ArchiveItem -Path c:\temp\myarchive.zip -DestinationPath c:\MyFolder -Item MyFile.txt, Myfile2.txt
@@ -51,10 +60,10 @@ Function Expand-ArchiveItem {
                 $currentZipEntries = $archive | Where-Object Path -like (Join-Path $currentItem *)
             }
             else {
-				$currentZipEntries = $archive | Where-Object Path -like $currentItem
+                $currentZipEntries = $archive | Where-Object Path -like $currentItem
             }
-			if ($Relative) {
-				$rootFolder = Split-Path $currentItem -Parent
+            if ($Relative) {
+                $rootFolder = Split-Path $currentItem -Parent
             }
             if (!$currentZipEntries) {
                 Write-Warning -Message "Item $currentItem was not found in $Path"
@@ -63,9 +72,9 @@ Function Expand-ArchiveItem {
                 # get archive item
                 if ($IgnoreFolders) {
                     $itemPath = Split-Path $currentZipItem.Path -Leaf
-				}
+                }
                 elseif ($Relative) {
-                    $itemPath = $currentZipItem.Path -replace ("^" + [Regex]::Escape($rootFolder)),''
+                    $itemPath = $currentZipItem.Path -replace ("^" + [Regex]::Escape($rootFolder)), ''
                 }
                 else {
                     $itemPath = $currentZipItem.Path
